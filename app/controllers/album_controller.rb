@@ -15,7 +15,7 @@ class AlbumController < ApplicationController
 
   	artist_id = Artist.find_by(artist_id: a_id).id
 
-    nombre_app = "localhost:3000"
+    nombre_app = "https://t2-iic3103-rferes.herokuapp.com"
     artist_url = nombre_app + "/artists/" + a_id
     self_url = nombre_app + "/albums/" + album_id
     tracks_url = nombre_app + "/" + album_id + "/tracks"
