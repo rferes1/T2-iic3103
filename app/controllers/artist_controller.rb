@@ -17,38 +17,37 @@ class ArtistController < ApplicationController
 
     if !artist_name.is_a?(String) or !artist_age.is_a?(Integer)
       render :bad_request
-    end
-
-    artist_id = Base64.encode64(artist_name).delete!("\n")
-    if artist_id.length > 22
-      artist_id = Base64.encode64(artist_name).delete!("\n")[0,22]
-    end 
-
-    if Artist.exists?(artist_id: artist_id)
-      artist = Artist.find_by(artist_id: artist_id)
-      sts = :conflict
     else
-      nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
-      albums_url = nombre_app + artist_id + "/albums"
-      tracks_url = nombre_app + artist_id + "/tracks"
-      self_url = nombre_app + "artists/" + artist_id
+      artist_id = Base64.encode64(artist_name).delete!("\n")
+      if artist_id.length > 22
+        artist_id = Base64.encode64(artist_name).delete!("\n")[0,22]
+      end 
 
-      artist_params = params.permit(:name, :age)
-      artist = Artist.create(artist_id: artist_id, name: artist_name, age: artist_age, albums_url: albums_url, tracks_url: tracks_url, self: self_url)
-
-      if artist.save
-        sts = :created
+      if Artist.exists?(artist_id: artist_id)
+        artist = Artist.find_by(artist_id: artist_id)
+        sts = :conflict
       else
-        sts = :bad_request
-      end
-    end 
-    render json: {id: artist.artist_id, 
-        name: artist.name, 
-        age: artist.age, 
-        albums: artist.albums_url,
-        tracks: artist.tracks_url,
-        self: artist.self},status: sts
+        nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
+        albums_url = nombre_app + artist_id + "/albums"
+        tracks_url = nombre_app + artist_id + "/tracks"
+        self_url = nombre_app + "artists/" + artist_id
 
+        artist_params = params.permit(:name, :age)
+        artist = Artist.create(artist_id: artist_id, name: artist_name, age: artist_age, albums_url: albums_url, tracks_url: tracks_url, self: self_url)
+
+        if artist.save
+          sts = :created
+        else
+          sts = :bad_request
+        end
+      end 
+      render json: {id: artist.artist_id, 
+          name: artist.name, 
+          age: artist.age, 
+          albums: artist.albums_url,
+          tracks: artist.tracks_url,
+          self: artist.self},status: sts
+    end
   end
 
   def index
