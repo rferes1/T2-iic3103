@@ -36,6 +36,16 @@ Rails.application.routes.draw do
 	###### DELETE
 	delete 'tracks/:t_id', to: 'track#delete' 
 
+	get '/unknown', to: 'artist#unknown'
+	post '/unknown', to: 'artist#unknown'
+	put '/unknown', to: 'artist#unknown'
+	delete '/unknown', to: 'artist#unknown'
+
+	match '*path' => redirect('/unknown'), via: :get
+	match '*path' => redirect('/unknown'), via: :post
+	match '*path' => redirect('/unknown'), via: :put
+	match '*path' => redirect('/unknown'), via: :delete
+
 end
 
 

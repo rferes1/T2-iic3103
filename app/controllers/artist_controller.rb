@@ -6,6 +6,11 @@ class ArtistController < ApplicationController
 
   def home
   end
+
+  def unknown
+    render status: :method_not_allowed
+  end
+
   def new
     artist_name = params[:name]
     artist_age = params[:age]
@@ -15,30 +20,31 @@ class ArtistController < ApplicationController
       artist_id = Base64.encode64(artist_name).delete!("\n")[0,22]
     end 
 
-
-    nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
-    albums_url = nombre_app + artist_id + "/albums"
-    tracks_url = nombre_app + artist_id + "/tracks"
-    self_url = nombre_app + "artists/" + artist_id
-
-  	artist_params = params.permit(:name, :age)
-  	artist = Artist.create(artist_id: artist_id, name: artist_name, age: artist_age, albums_url: albums_url, tracks_url: tracks_url, self: self_url)
-
-    if artist.save
-      render json: {id: artist.artist_id, 
-      name: artist.name, 
-      age: artist.age, 
-      albums: artist.albums_url,
-      tracks: artist.tracks_url,
-      self: artist.self},status: :ok
+    if Artist.exists?(artist_id: artist_id)
+      artist = Artist.find_by(artist_id: artist_id)
+      sts = :conflict
     else
-      render json: {id: artist.artist_id, 
-      name: artist.name, 
-      age: artist.age, 
-      albums: artist.albums_url,
-      tracks: artist.tracks_url,
-      self: artist.self},status: :unprocessable_entity
-    end
+      nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
+      albums_url = nombre_app + artist_id + "/albums"
+      tracks_url = nombre_app + artist_id + "/tracks"
+      self_url = nombre_app + "artists/" + artist_id
+
+      artist_params = params.permit(:name, :age)
+      artist = Artist.create(artist_id: artist_id, name: artist_name, age: artist_age, albums_url: albums_url, tracks_url: tracks_url, self: self_url)
+
+      if artist.save
+        sts = :created
+      else
+        sts = :bad_request
+      end
+    end 
+    render json: {id: artist.artist_id, 
+        name: artist.name, 
+        age: artist.age, 
+        albums: artist.albums_url,
+        tracks: artist.tracks_url,
+        self: artist.self},status: sts
+
   end
 
   def index
@@ -52,64 +58,86 @@ class ArtistController < ApplicationController
   end
 
   def show
-  	artist = Artist.find_by(artist_id: params[:a_id])
-  	render json: {id: artist.artist_id, 
-      name: artist.name, 
-      age: artist.age, 
-      albums: artist.albums_url,
-      tracks: artist.tracks_url,
-      self: artist.self},status: :ok
+    if Artist.exists?(artist_id: params[:a_id])
+    	artist = Artist.find_by(artist_id: params[:a_id])
+    	render json: {id: artist.artist_id, 
+        name: artist.name, 
+        age: artist.age, 
+        albums: artist.albums_url,
+        tracks: artist.tracks_url,
+        self: artist.self},status: :ok
+    else
+      render status: :not_found
+    end
   end
 
   def show_albums
-    artist = Artist.find_by(artist_id: params[:a_id])
-    albums = Album.where(artist_id: artist.id)
+    if Artist.exists?(artist_id: params[:a_id])
+      artist = Artist.find_by(artist_id: params[:a_id])
+      albums = Album.where(artist_id: artist.id)
 
-    albums_json = []
-    albums.each do |album|
-      json = {id: album.album_id, name: album.name, genre: album.genre, artist: album.artist_url, tracks: album.tracks_url, self: album.self_url}
-      albums_json.push(json)
+      albums_json = []
+      albums.each do |album|
+        json = {id: album.album_id, name: album.name, genre: album.genre, artist: album.artist_url, tracks: album.tracks_url, self: album.self_url}
+        albums_json.push(json)
+      end
+      render json: albums_json,status: :ok
+    else 
+      render status: :not_found
     end
-    render json: albums_json,status: :ok
   end
 
   def show_tracks
-    artist = Artist.find_by(artist_id: params[:a_id])
-    tracks = Track.where(artist_id: artist.id)
+    if Artist.exists?(artist_id: params[:a_id])
+      artist = Artist.find_by(artist_id: params[:a_id])
+      tracks = Track.where(artist_id: artist.id)
 
-    tracks_json = []
-    tracks.each do |track|
-      json = {id: track.track_id, name: track.name, duration: track.duration, times_played: track.times_played, artist: track.artist_url,
-      album: track.album_url, self: track.self_url}
-      tracks_json.push(json)
+      tracks_json = []
+      tracks.each do |track|
+        json = {id: track.track_id, name: track.name, duration: track.duration, times_played: track.times_played, artist: track.artist_url,
+        album: track.album_url, self: track.self_url}
+        tracks_json.push(json)
+      end
+      render json: tracks_json,status: :ok
+    else
+      render status: :not_found
     end
-    render json: tracks_json,status: :ok
   end
 
   def play_tracks
     artist_id = params[:a_id]
-    artist = Artist.find_by(artist_id: artist_id)
-    tracks = Track.where(artist_id: artist.id)
-    tracks.each do |track|
-      tp = track.times_played
-      ntp = tp + 1
-      track.update_attribute(:times_played, ntp)
+    if Artist.exists?(artist_id: params[:a_id])    
+      artist = Artist.find_by(artist_id: artist_id)
+      tracks = Track.where(artist_id: artist.id)
+      tracks.each do |track|
+        tp = track.times_played
+        ntp = tp + 1
+        track.update_attribute(:times_played, ntp)
+      end
+    else
+      render status: :not_found
     end
   end
 
   def delete
-    artist = Artist.find_by(artist_id: params[:a_id])
+    if Artist.exists?(artist_id: params[:a_id])   
+      artist = Artist.find_by(artist_id: params[:a_id])
 
-    tracks = Track.where(artist_id: artist.id)
-    tracks.each do |track|
-      track.destroy
-    end 
+      tracks = Track.where(artist_id: artist.id)
+      tracks.each do |track|
+        track.destroy
+      end 
 
-    albums = Album.where(artist_id: artist.id)
-    albums.each do |album|
-      album.destroy
-    end 
-    artist.destroy
+      albums = Album.where(artist_id: artist.id)
+      albums.each do |album|
+        album.destroy
+      end 
+      artist.destroy
+
+      render status: :no_content
+    else 
+      render status: :not_found
+    end
   end 
 =begin
 [
