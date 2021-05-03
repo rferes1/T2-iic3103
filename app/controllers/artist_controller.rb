@@ -114,6 +114,7 @@ class ArtistController < ApplicationController
         ntp = tp + 1
         track.update_attribute(:times_played, ntp)
       end
+      render status: :ok
     else
       render status: :not_found
     end
