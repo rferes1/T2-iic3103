@@ -43,8 +43,8 @@ class ArtistController < ApplicationController
         sts = :conflict
       else
         nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
-        albums_url = nombre_app + artist_id + "/albums"
-        tracks_url = nombre_app + artist_id + "/tracks"
+        albums_url = nombre_app + "artists/" + artist_id + "/albums"
+        tracks_url = nombre_app + "artists/" + artist_id + "/tracks"
         self_url = nombre_app + "artists/" + artist_id
 
         artist_params = params.permit(:name, :age)
