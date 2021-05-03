@@ -37,7 +37,7 @@ class AlbumController < ApplicationController
 
       render json: {id: album.album_id, 
         name: album.name, 
-        age: album.genre, 
+        genre: album.genre, 
         albums: album.artist_url,
         tracks: album.tracks_url,
         self: album.self_url}, status: sts
@@ -51,7 +51,7 @@ class AlbumController < ApplicationController
     albums = Album.order('created_at DESC');
     albums_json = []
     albums.each do |album|
-      json = {id: album.album_id, name: album.name, age: album.genre, artist: album.artist_url, tracks: album.tracks_url, self: album.self_url}
+      json = {id: album.album_id, name: album.name, genre: album.genre, artist: album.artist_url, tracks: album.tracks_url, self: album.self_url}
       albums_json.push(json)
     end
     render json: albums_json,status: :ok
@@ -62,7 +62,7 @@ class AlbumController < ApplicationController
       album = Album.find_by(album_id: params[:album_id])
       render json: {id: album.album_id, 
         name: album.name, 
-        age: album.genre, 
+        genre: album.genre, 
         albums: album.artist_url,
         tracks: album.tracks_url,
         self: album.self_url},status: :ok
@@ -112,7 +112,7 @@ class AlbumController < ApplicationController
       end 
       album.destroy
       render status: :no_content
-      
+
     else
       render status: :not_found
     end
