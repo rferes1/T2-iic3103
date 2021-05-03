@@ -14,9 +14,11 @@ class ArtistController < ApplicationController
   def new
     artist_name = params[:name]
     artist_age = params[:age]
+    artist_age_int = artist_age.to_i
+    artist_age_str = artist_age_int.to_s
 
-    if !artist_name.is_a?(String) or !artist_age.is_a?(Integer)
-      render :bad_request
+    if !(params[:age] == artist_age_str)
+      render status: :bad_request
     else
       artist_id = Base64.encode64(artist_name).delete!("\n")
       if artist_id.length > 22
