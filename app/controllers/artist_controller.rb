@@ -14,55 +14,41 @@ class ArtistController < ApplicationController
   def new
     artist_name = params[:name]
     artist_age = params[:age]
-    artist_age_int = artist_age.to_i
-    artist_age_str = artist_age_int.to_s
 
-    valido = true
-    params.each do |key, value|
-      #if (key != "name" or key != "age")
-      #  valido = false
-      #end
-      #if  (key == "name" or key == "age") and value == ""
-       # valido = false
-      end
-      if artist_age_str != params[:age]
-        valido = false
-      end
-    end
+    if artist_age == "" or artist_name == ""
+      return render status: :bad_request
+    end 
 
-    if !(valido)
-      render status: :bad_request
+    artist_id = Base64.encode64(artist_name).delete!("\n")
+    if artist_id.length > 22
+      artist_id = Base64.encode64(artist_name).delete!("\n")[0,22]
+    end 
+
+    if Artist.exists?(artist_id: artist_id)
+      artist = Artist.find_by(artist_id: artist_id)
+      sts = :conflict
     else
-      artist_id = Base64.encode64(artist_name).delete!("\n")
-      if artist_id.length > 22
-        artist_id = Base64.encode64(artist_name).delete!("\n")[0,22]
-      end 
+      nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
+      albums_url = nombre_app + artist_id + "/albums"
+      tracks_url = nombre_app + artist_id + "/tracks"
+      self_url = nombre_app + "artists/" + artist_id
 
-      if Artist.exists?(artist_id: artist_id)
-        artist = Artist.find_by(artist_id: artist_id)
-        sts = :conflict
+      artist_params = params.permit(:name, :age)
+      artist = Artist.create(artist_id: artist_id, name: artist_name, age: artist_age, albums_url: albums_url, tracks_url: tracks_url, self: self_url)
+
+      if artist.save
+        sts = :created
       else
-        nombre_app = "https://t2-iic3103-rferes.herokuapp.com/"
-        albums_url = nombre_app + "artists/" + artist_id + "/albums"
-        tracks_url = nombre_app + "artists/" + artist_id + "/tracks"
-        self_url = nombre_app + "artists/" + artist_id
+        sts = :bad_request
+      end
+    end 
+    render json: {id: artist.artist_id, 
+        name: artist.name, 
+        age: artist.age, 
+        albums: artist.albums_url,
+        tracks: artist.tracks_url,
+        self: artist.self},status: sts
 
-        artist_params = params.permit(:name, :age)
-        artist = Artist.create(artist_id: artist_id, name: artist_name, age: artist_age, albums_url: albums_url, tracks_url: tracks_url, self: self_url)
-
-        if artist.save
-          sts = :created
-        else
-          sts = :bad_request
-        end
-      end 
-      render json: {id: artist.artist_id, 
-          name: artist.name, 
-          age: artist.age, 
-          albums: artist.albums_url,
-          tracks: artist.tracks_url,
-          self: artist.self},status: sts
-    end
   end
 
   def index

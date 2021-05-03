@@ -7,58 +7,48 @@ class AlbumController < ApplicationController
     album_name = params[:name]
     album_genre = params[:genre]
 
-    valido = true
-    params.each do |key, value|
-      #if (key != "name" or key != "age")
-      #  valido = false
-      #end
-      if  (key == "name" or key == "genre") and value == ""
-        valido = false
-      end
+    if album_genre == "" or album_name == ""
+      return render status: :bad_request
     end
 
-    if (valido)
-      if Artist.exists?(artist_id: params[:a_id])
+    if Artist.exists?(artist_id: params[:a_id])
 
-        string =  album_name + ":" + a_id
-        album_id = Base64.encode64(string).delete!("\n")
+      string =  album_name + ":" + a_id
+      album_id = Base64.encode64(string).delete!("\n")
 
-        if album_id.length > 22
-          album_id = Base64.encode64(string).delete!("\n")[0,22]
-        end 
-
-        if Album.exists?(album_id: album_id)
-          album = Album.find_by(album_id: album_id)
-          sts = :conflict
-        else
-        	artist_id = Artist.find_by(artist_id: a_id).id
-          nombre_app = "https://t2-iic3103-rferes.herokuapp.com"
-          artist_url = nombre_app + "/artists/" + a_id
-          self_url = nombre_app + "/albums/" + album_id
-          tracks_url = nombre_app + "/" + album_id + "/tracks"
-          album_params = params.permit(:name, :genre, :a_id)
-        	album = Album.create(album_id: album_id, name: album_name, genre: album_genre, 
-            artist_url: artist_url, tracks_url: tracks_url, self_url: self_url, artist_id: artist_id)
-
-          if album.save
-            sts = :created
-          else
-            sts = :unprocessable_entity
-          end
-
-        render json: {id: album.album_id, 
-          name: album.name, 
-          genre: album.genre, 
-          artist: album.artist_url,
-          tracks: album.tracks_url,
-          self: album.self_url}, status: sts
-        end
-      else 
-        render status: :not_found
+      if album_id.length > 22
+        album_id = Base64.encode64(string).delete!("\n")[0,22]
       end 
-    end
-  else 
-    render status: :bad_request
+
+      if Album.exists?(album_id: album_id)
+        album = Album.find_by(album_id: album_id)
+        sts = :conflict
+      else
+      	artist_id = Artist.find_by(artist_id: a_id).id
+        nombre_app = "https://t2-iic3103-rferes.herokuapp.com"
+        artist_url = nombre_app + "/artists/" + a_id
+        self_url = nombre_app + "/albums/" + album_id
+        tracks_url = nombre_app + "/" + album_id + "/tracks"
+        album_params = params.permit(:name, :genre, :a_id)
+      	album = Album.create(album_id: album_id, name: album_name, genre: album_genre, 
+          artist_url: artist_url, tracks_url: tracks_url, self_url: self_url, artist_id: artist_id)
+
+        if album.save
+          sts = :created
+        else
+          sts = :unprocessable_entity
+        end
+
+      render json: {id: album.album_id, 
+        name: album.name, 
+        genre: album.genre, 
+        artist: album.artist_url,
+        tracks: album.tracks_url,
+        self: album.self_url}, status: sts
+      end
+    else 
+      render status: :not_found
+    end 
   end
 
   def index
