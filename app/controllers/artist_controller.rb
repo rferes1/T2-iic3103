@@ -22,8 +22,8 @@ class ArtistController < ApplicationController
       #if (key != "name" or key != "age")
       #  valido = false
       #end
-      if  (key == "name" or key == "age") and value == ""
-        valido = false
+      #if  (key == "name" or key == "age") and value == ""
+       # valido = false
       end
       if artist_age_str != params[:age]
         valido = false

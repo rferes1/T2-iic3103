@@ -14,46 +14,59 @@ class TrackController < ApplicationController
       track_id = Base64.encode64(string).delete!("\n")[0,22]
     end 
 
+    valido = true
+    params.each do |key, value|
+      #if (key != "name" or key != "age")
+      #  valido = false
+      #end
+      if  (key == "name" or key == "duration") and value == ""
+        valido = false
+      end
+    end
 
-	
-	if Album.exists?(album_id: params[:album_id])
-    	album = Album.find_by(album_id: album_id)
-	  	aid = album.artist_id
 
-	  	if Artist.exists?(aid)
-	  		artist_id = Artist.find_by(id: aid).artist_id
+	if valido
+		if Album.exists?(album_id: params[:album_id])
+	    	album = Album.find_by(album_id: album_id)
+		  	aid = album.artist_id
 
-	  		if Track.exists?(track_id: track_id)
-				track = Track.find_by(track_id: track_id)
-				sts = :conflict
+		  	if Artist.exists?(aid)
+		  		artist_id = Artist.find_by(id: aid).artist_id
+
+		  		if Track.exists?(track_id: track_id)
+					track = Track.find_by(track_id: track_id)
+					sts = :conflict
+				else
+				    nombre_app = "https://t2-iic3103-rferes.herokuapp.com"
+				    artist_url = nombre_app + "/artists/" + artist_id
+				    self_url = nombre_app + "/tracks/" + track_id
+				    album_url = nombre_app + "/albums/" + album_id
+
+				    track_params = params.permit(:name, :duration, :album_id)
+				  	track = Track.create(track_id: track_id, name: track_name, duration: track_duration, times_played: times_played,
+				  		artist_url: artist_url, album_url: album_url, self_url: self_url, artist_id: aid, album_id: album.id)
+
+				    if track.save
+				      sts = :created
+				    else
+				      sts = :unprocessable_entity
+				    end
+				end
+				render json: {id: track.track_id,
+				      	name: track.name, 
+						duration: track.duration,
+						times_played: times_played,
+						artist: track.artist_url,
+						album: track.album_url,
+						self: track.self_url},status: sts
 			else
-			    nombre_app = "https://t2-iic3103-rferes.herokuapp.com"
-			    artist_url = nombre_app + "/artists/" + artist_id
-			    self_url = nombre_app + "/tracks/" + track_id
-			    album_url = nombre_app + "/albums/" + album_id
-
-			    track_params = params.permit(:name, :duration, :album_id)
-			  	track = Track.create(track_id: track_id, name: track_name, duration: track_duration, times_played: times_played,
-			  		artist_url: artist_url, album_url: album_url, self_url: self_url, artist_id: aid, album_id: album.id)
-
-			    if track.save
-			      sts = :created
-			    else
-			      sts = :unprocessable_entity
-			    end
-			end
-			render json: {id: track.track_id,
-			      	name: track.name, 
-					duration: track.duration,
-					times_played: times_played,
-					artist: track.artist_url,
-					album: track.album_url,
-					self: track.self_url},status: sts
+		  		render status: :not_found
+		  	end
 		else
-	  		render status: :not_found
-	  	end
-	else
-		render status: :not_found
+			render status: :not_found
+		end
+	else 
+		render status: :bad_request
 	end
   end
   def index
