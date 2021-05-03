@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
 
+	root to: 'artist#home'
 	## ----------- Artists --------------
 	###### GET
 	get 'artists', to: 'artist#index'

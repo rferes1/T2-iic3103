@@ -3,6 +3,9 @@ require 'json'
 
 
 class ArtistController < ApplicationController
+
+  def home
+  end
   def new
     artist_name = params[:name]
     artist_age = params[:age]
@@ -96,7 +99,7 @@ class ArtistController < ApplicationController
 
   def delete
     artist = Artist.find_by(artist_id: params[:a_id])
-    
+
     tracks = Track.where(artist_id: artist.id)
     tracks.each do |track|
       track.destroy
