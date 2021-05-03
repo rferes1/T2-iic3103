@@ -38,7 +38,7 @@ class AlbumController < ApplicationController
       render json: {id: album.album_id, 
         name: album.name, 
         genre: album.genre, 
-        albums: album.artist_url,
+        artist: album.artist_url,
         tracks: album.tracks_url,
         self: album.self_url}, status: sts
       end
@@ -63,7 +63,7 @@ class AlbumController < ApplicationController
       render json: {id: album.album_id, 
         name: album.name, 
         genre: album.genre, 
-        albums: album.artist_url,
+        artist: album.artist_url,
         tracks: album.tracks_url,
         self: album.self_url},status: :ok
     else
