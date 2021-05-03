@@ -17,7 +17,20 @@ class ArtistController < ApplicationController
     artist_age_int = artist_age.to_i
     artist_age_str = artist_age_int.to_s
 
-    if !(params[:age] == artist_age_str)
+    valido = true
+    params.each do |key, value|
+      #if (key != "name" or key != "age")
+      #  valido = false
+      #end
+      if  (key == "name" or key == "age") and value == ""
+        valido = false
+      end
+      if artist_age_str != params[:age]
+        valido = false
+      end
+    end
+
+    if !(valido)
       render status: :bad_request
     else
       artist_id = Base64.encode64(artist_name).delete!("\n")
